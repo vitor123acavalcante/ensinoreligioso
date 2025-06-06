@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz sobre Judaísmo</title>
+    <!-- Incluindo Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right, #f3e5f5, #e0f2f7); /* Gradiente suave */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .quiz-container {
+            background-color: #ffffff;
+            padding: 2.5rem; /* Maior padding */
+            border-radius: 1.5rem; /* Cantos mais arredondados */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra mais suave */
+            width: 100%;
+            max-width: 700px; /* Largura máxima para desktops */
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            animation: fadeIn 1s ease-out; /* Animação de entrada */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            color: #4a5568; /* Título mais escuro */
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+        #question-display {
+            font-size: 1.5rem; /* Texto da pergunta maior */
+            color: #2d3748; /* Cor mais escura para a pergunta */
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Uma coluna por padrão */
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (min-width: 640px) { /* Para telas maiores que sm */
+            .options-grid {
+                grid-template-columns: 1fr 1fr; /* Duas colunas */
+            }
+        }
+        .option-button {
+            background-color: #edf2f7; /* Cor de fundo suave */
+            color: #4a5568; /* Cor do texto */
+            padding: 1rem 1.25rem; /* Padding generoso */
+            border-radius: 0.75rem; /* Cantos arredondados */
+            font-size: 1.125rem; /* Texto da opção maior */
+            cursor: pointer;
+            transition: all 0.3s ease; /* Transição suave */
+            border: 2px solid transparent; /* Borda transparente */
+        }
+        .option-button:hover:not(.correct):not(.wrong) {
+            background-color: #e2e8f0; /* Cor de fundo ao passar o mouse */
+            transform: translateY(-2px); /* Efeito de elevação */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+        .option-button.selected {
+            border-color: #4299e1; /* Borda azul quando selecionado */
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.4);
+        }
+        .option-button.correct {
+            background-color: #68d391; /* Verde para resposta correta */
+            color: #ffffff;
+            border-color: #38a169;
+            animation: flashGreen 0.5s;
+        }
+        .option-button.wrong {
+            background-color: #fc8181; /* Vermelho para resposta errada */
+            color: #ffffff;
+            border-color: #e53e3e;
+            animation: flashRed 0.5s;
+        }
+        @keyframes flashGreen {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.03); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes flashRed {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.03); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #feedback-message {
+            font-size: 1.125rem;
+            margin-top: 1rem;
+            min-height: 24px; /* Garante espaço para a mensagem */
+        }
+
+        #next-button, #restart-button {
+            background-color: #4299e1; /* Azul vibrante */
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-size: 1.25rem;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(66, 153, 225, 0.3);
+        }
+        #next-button:hover, #restart-button:hover {
+            background-color: #3182ce; /* Azul mais escuro ao passar o mouse */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(66, 153, 225, 0.4);
+        }
+        #next-button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        #score-display {
+            font-size: 1.25rem;
+            color: #2d3748;
+            font-weight: 600;
+        }
+        .final-score {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #38a169;
+            margin-bottom: 1.5rem;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1 class="text-4xl">Quiz sobre Judaísmo</h1>
+
+        <div id="game-area">
+            <p id="question-display" class="mb-6"></p>
+            <div id="options-container" class="options-grid">
+                <!-- Botões de opção serão inseridos aqui pelo JS -->
+            </div>
+            <p id="feedback-message" class="text-center font-medium"></p>
+            <button id="next-button" class="mt-8" disabled>Próxima Pergunta</button>
+        </div>
+
+        <div id="results-area" class="hidden">
+            <h2 class="text-3xl text-gray-700 mb-4">Quiz Finalizado!</h2>
+            <p class="final-score">Sua Pontuação: <span id="final-score-value"></span>/<span id="total-questions"></span></p>
+            <button id="restart-button">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script>
+        // Array de perguntas do quiz sobre Judaísmo, atualizado com as informações fornecidas.
+        const questions = [
+            {
+                question: "Quando e onde o Judaísmo, a religião monoteísta mais antiga do mundo, surgiu?",
+                options: ["Século V a.C. na Grécia", "Por volta de 2000 a.C. no Oriente Médio", "Século I d.C. em Roma", "Século VII d.C. na Arábia"],
+                answer: "Por volta de 2000 a.C. no Oriente Médio"
+            },
+            {
+                question: "De acordo com a tradição judaica, quem foi ordenado por Deus a abandonar o politeísmo e migrar para Canaã, marcando o início do Judaísmo?",
+                options: ["Moisés", "Davi", "Abraão", "Salomão"],
+                answer: "Abraão"
+            },
+            {
+                question: "Qual é o título dado aos principais líderes espirituais do Judaísmo, responsáveis pelo ensino e aplicação jurídica?",
+                options: ["Pastor", "Padre", "Imã", "Rabino"],
+                answer: "Rabino"
+            },
+            {
+                question: "Qual é o nome do principal local de adoração no antigo Israel antes da sua destruição?",
+                options: ["Templo de Artemisa", "Partenon", "O Templo de Jerusalém", "Grande Pirâmide de Gizé"],
+                answer: "O Templo de Jerusalém"
+            },
+            {
+                question: "Qual é o nome dos locais de culto e estudo para a comunidade judaica moderna?",
+                options: ["Igreja", "Mesquita", "Templo", "Sinagogas"],
+                answer: "Sinagogas"
+            },
+            {
+                question: "No judaísmo, qual o conjunto de leis que define quais alimentos são permitidos e quais são proibidos, considerando-os sagrados?",
+                options: ["Halal", "Vegan", "Kashrut", "Vegetariano"],
+                answer: "Kashrut"
+            },
+            {
+                question: "Qual é o pão sem fermento consumido durante a Páscoa judaica?",
+                options: ["Pão Sírio", "Ciabatta", "Matzá", "Bagel"],
+                answer: "Matzá"
+            },
+            {
+                question: "Qual é o ritual judaico de passagem que celebra a entrada de um menino na idade adulta religiosa, geralmente aos 13 anos?",
+                options: ["Batismo", "Confirmação", "Bar Mitzvá", "Crisma"],
+                answer: "Bar Mitzvá"
+            },
+            {
+                question: "Qual ritual é um banho de purificação em um reservatório de água natural, importante para a conversão e purificação ritual?",
+                options: ["Brit Milá", "Pêssach", "Micvê", "Shabat"],
+                answer: "Micvê"
+            },
+            {
+                question: "Qual dia da semana é considerado o dia de descanso e santidade no Judaísmo?",
+                options: ["Domingo", "Sexta-feira", "Shabat", "Quarta-feira"],
+                answer: "Shabat"
+            },
+            {
+                question: "Qual pequeno solidéu é usado pelos homens judeus como sinal de respeito?",
+                options: ["Turbante", "Boné", "Chapéu", "Kipá"],
+                answer: "Kipá"
+            },
+            {
+                question: "Qual xale de oração é usado durante os serviços religiosos judaicos?",
+                options: ["Burca", "Sari", "Talit", "Quimono"],
+                answer: "Talit"
+            },
+            {
+                question: "No Judaísmo, quais fios são fixados nas extremidades do talit, servindo como um lembrete dos mandamentos?",
+                options: ["Borlas", "Laços", "Tzitzit", "Franjas"],
+                answer: "Tzitzit"
+            },
+            {
+                question: "Qual é o livro mais sagrado do Judaísmo, contendo os cinco primeiros livros da Bíblia Hebraica?",
+                options: ["Corão", "Bíblia Cristã", "Torá", "Vedas"],
+                answer: "Torá"
+            },
+            {
+                question: "Qual é a coleção de ensinamentos e comentários rabínicos sobre a Torá e outros textos sagrados, fundamental para o estudo judaico?",
+                options: ["Evangelhos", "Sutra", "Talmud", "Tripitaka"],
+                answer: "Talmud"
+            },
+            {
+                question: "Qual é o símbolo mais reconhecido do Judaísmo, uma estrela de seis pontas?",
+                options: ["Cruz", "Crescente e Estrela", "Estrela de Davi", "Om"],
+                answer: "Estrela de Davi"
+            },
+            {
+                question: "Qual é o candelabro de sete braços que simboliza o Templo de Jerusalém, sendo um dos símbolos judaicos mais antigos?",
+                options: ["Lampião", "Vela", "Menorá", "Tocha"],
+                answer: "Menorá"
+            },
+            {
+                question: "Qual é o chifre de carneiro ritualístico, usado em cerimônias religiosas como Rosh Hashaná e Yom Kipur?",
+                options: ["Corneta", "Trombeta", "Shofar", "Clarim"],
+                answer: "Shofar"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOption = null; // Para rastrear a opção selecionada
+
+        const questionDisplay = document.getElementById('question-display');
+        const optionsContainer = document.getElementById('options-container');
+        const nextButton = document.getElementById('next-button');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const gameArea = document.getElementById('game-area');
+        const resultsArea = document.getElementById('results-area');
+        const finalScoreValue = document.getElementById('final-score-value');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const restartButton = document.getElementById('restart-button');
+
+        // Função para iniciar o quiz
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            gameArea.classList.remove('hidden');
+            resultsArea.classList.add('hidden');
+            nextButton.disabled = true; // Desabilita o botão "Próxima Pergunta" no início
+            showQuestion();
+        }
+
+        // Função para exibir a pergunta e suas opções
+        function showQuestion() {
+            // Limpa o feedback e as classes dos botões
+            feedbackMessage.textContent = '';
+            optionsContainer.innerHTML = '';
+            nextButton.disabled = true; // Garante que o botão esteja desabilitado
+            selectedOption = null;
+
+            if (currentQuestionIndex < questions.length) {
+                const currentQuestion = questions[currentQuestionIndex];
+                questionDisplay.textContent = `${currentQuestionIndex + 1}. ${currentQuestion.question}`;
+
+                currentQuestion.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.classList.add('option-button');
+                    button.addEventListener('click', () => selectAnswer(button, option, currentQuestion.answer));
+                    optionsContainer.appendChild(button);
+                });
+            } else {
+                showResults();
+            }
+        }
+
+        // Função para selecionar uma resposta
+        function selectAnswer(button, selectedAnswer, correctAnswer) {
+            // Se já selecionou uma opção ou a próxima pergunta já foi habilitada, não faz nada
+            if (selectedOption !== null) return;
+
+            selectedOption = button; // Marca a opção selecionada
+
+            // Remove a classe 'selected' de todos os botões de opção
+            document.querySelectorAll('.option-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            // Adiciona a classe 'selected' ao botão clicado
+            button.classList.add('selected');
+
+            // Verifica a resposta
+            if (selectedAnswer === correctAnswer) {
+                score++;
+                button.classList.add('correct');
+                feedbackMessage.textContent = 'Correto!';
+                feedbackMessage.classList.remove('text-red-600');
+                feedbackMessage.classList.add('text-green-600');
+            } else {
+                button.classList.add('wrong');
+                feedbackMessage.textContent = `Incorreto. A resposta correta é: ${correctAnswer}`;
+                feedbackMessage.classList.remove('text-green-600');
+                feedbackMessage.classList.add('text-red-600');
+
+                // Opcional: Destaca a resposta correta se a escolhida estiver errada
+                Array.from(optionsContainer.children).forEach(btn => {
+                    if (btn.textContent === correctAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            // Desabilita todos os botões de opção após a seleção
+            Array.from(optionsContainer.children).forEach(btn => btn.disabled = true);
+            nextButton.disabled = false; // Habilita o botão para a próxima pergunta
+        }
+
+        // Função para ir para a próxima pergunta
+        function nextQuestion() {
+            currentQuestionIndex++;
+            showQuestion();
+        }
+
+        // Função para exibir os resultados finais
+        function showResults() {
+            gameArea.classList.add('hidden');
+            resultsArea.classList.remove('hidden');
+            finalScoreValue.textContent = score;
+            totalQuestionsSpan.textContent = questions.length;
+        }
+
+        // Adiciona event listeners aos botões
+        nextButton.addEventListener('click', nextQuestion);
+        restartButton.addEventListener('click', startQuiz);
+
+        // Inicia o quiz quando a página carrega
+        window.onload = startQuiz;
+    </script>
+</body>
+</html>
